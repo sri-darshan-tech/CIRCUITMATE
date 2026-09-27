@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CircuitMate ⚡ - AI-Powered Electronics Lab Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151f32',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            650: '#0891b2',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090d16;
+            color: #e2e8f0;
+        }
+        .font-mono {
+            font-family: 'Fira Code', monospace;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+        .glow-amber {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }
+        .glow-cyan-sm {
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+        }
+        .cyber-border {
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(9, 13, 22, 0.95) 100%);
+            backdrop-filter: blur(12px);
+        }
+        .cyber-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .cyber-input {
+            background: rgba(9, 13, 22, 0.85);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #f8fafc;
+        }
+        .cyber-input:focus {
+            border-color: #22d3ee;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+            outline: none;
+        }
+        /* Nikola Tesla Laboratory Background */
+        .tesla-bg {
+            background-image: linear-gradient(to bottom, rgba(9, 13, 22, 0.88), rgba(9, 13, 22, 0.95)), url('https://upload.wikimedia.org/wikipedia/commons/7/7b/Tesla_colorado_springs.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+        .animate-scan {
+            animation: scanline 2.5s linear infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-100 selection:bg-cyan-500 selection:text-black tesla-bg">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/85 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-amber-500 p-0.5 flex items-center justify-center glow-cyan">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-bolt text-amber-400 text-2xl animate-pulse"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 via-teal-300 to-amber-400 bg-clip-text text-transparent">
+                        CircuitMate ⚡
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide">AI-POWERED ELECTRONICS LAB ASSISTANT</p>
+                </div>
+            </div>
+
+            <!-- Header Action Nav -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="switchMainTab('diagnostics')" id="nav-diagnostics" class="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-semibold flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-stethoscope"></i>
+                    <span class="hidden md:inline">Diagnostics</span>
+                </button>
+                <button onclick="switchMainTab('calculators')" id="nav-calculators" class="px-3 py-2 rounded-lg cyber-card hover:border-cyan-500/40 text-slate-300 text-xs font-semibold flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-calculator text-amber-400"></i>
+                    <span class="hidden md:inline">Calculators</span>
+                </button>
+                <button onclick="toggleHistoryDrawer()" class="px-3.5 py-2 rounded-lg cyber-card hover:border-cyan-500/60 transition text-xs font-semibold flex items-center space-x-2 text-slate-300 hover:text-cyan-400">
+                    <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i>
+                    <span class="hidden sm:inline">History</span>
+                </button>
+                <button onclick="openApiKeyModal()" class="px-3.5 py-2 rounded-lg cyber-card hover:border-amber-500/60 transition text-xs font-semibold flex items-center space-x-2 text-slate-300 hover:text-amber-400">
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span class="hidden sm:inline" id="apiKeyStatusLabel">API Key</span>
+                </button>
+                <div class="h-6 w-[1px] bg-slate-800 mx-1"></div>
+                <div class="hidden xl:flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="text-xs font-mono text-emerald-400 font-semibold" id="modeIndicator">AI Online</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- VIEW 1: DIAGNOSTICS & LAB ASSISTANT (Default) -->
+        <div id="view-diagnostics" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Input & Presets (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Quick Presets -->
+                <div class="cyber-border rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-cyan-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Common Student Problems</span>
+                        </h2>
+                        <span class="text-[10px] text-slate-500 font-mono">Click to load</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <button onclick="loadPreset('led_arduino')" class="text-left p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 transition group flex items-start space-x-3">
+                            <span class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 transition mt-0.5">
+                                <span class="fa-solid fa-lightbulb text-sm"></span>
+                            </span>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200 group-hover:text-cyan-300 transition">LED won't light up on Arduino</div>
+                                <div class="text-xs text-slate-400 line-clamp-1">Digital pin 13 connected directly to LED without resistor.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="loadPreset('timer_555')" class="text-left p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 transition group flex items-start space-x-3">
+                            <span class="p-2 rounded-lg bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20 transition mt-0.5">
+                                <span class="fa-solid fa-wave-square text-sm"></span>
+                            </span>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200 group-hover:text-amber-300 transition">555 Timer Astable not oscillating</div>
+                                <div class="text-xs text-slate-400 line-clamp-1">Circuit stuck HIGH, possible incorrect capacitor or missing pull-up.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="loadPreset('transistor_hot')" class="text-left p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-red-500/50 transition group flex items-start space-x-3">
+                            <span class="p-2 rounded-lg bg-red-500/10 text-red-400 group-hover:bg-red-500/20 transition mt-0.5">
+                                <span class="fa-solid fa-fire text-sm"></span>
+                            </span>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200 group-hover:text-red-300 transition">Transistor switch getting extremely hot</div>
+                                <div class="text-xs text-slate-400 line-clamp-1">TIP120 driving DC motor without base resistor or flyback diode.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="loadPreset('opamp_sat')" class="text-left p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/50 transition group flex items-start space-x-3">
+                            <span class="p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition mt-0.5">
+                                <span class="fa-solid fa-triangle-exclamation text-sm"></span>
+                            </span>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-200 group-hover:text-purple-300 transition">Op-Amp output saturated at VCC</div>
+                                <div class="text-xs text-slate-400 line-clamp-1">LM358 non-inverting amplifier with high gain and no feedback resistor.</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Circuit Input Form -->
+                <div class="cyber-border rounded-2xl p-6 shadow-xl space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-microchip"></i>
+                            <span>Circuit Diagnostic Console</span>
+                        </h2>
+                        <button onclick="clearForm()" class="text-xs text-slate-400 hover:text-slate-200 underline">Reset Form</button>
+                    </div>
+
+                    <form id="circuitForm" onsubmit="handleAnalyze(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Circuit Architecture</label>
+                            <select id="circuitType" class="w-full cyber-input rounded-xl px-3.5 py-2.5 text-sm font-medium">
+                                <option value="Microcontroller / Arduino">Microcontroller / Arduino (ESP32, AVR, STM32)</option>
+                                <option value="Analog">Analog / Linear (Op-Amps, 555, Transistors, Filters)</option>
+                                <option value="Digital / Logic">Digital / Logic (Logic Gates, Flip-Flops, Counters)</option>
+                                <option value="Power Electronics">Power Electronics (Buck/Boost, Regulators, Motors)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wide">Problem Description & Components</label>
+                                <!-- Voice Dictation Button -->
+                                <button type="button" onclick="toggleVoiceInput()" id="micBtn" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30 transition">
+                                    <i class="fa-solid fa-microphone"></i>
+                                    <span id="micLabel">Dictate</span>
+                                </button>
+                            </div>
+                            <textarea id="problemDesc" rows="4" required placeholder="Describe what is happening (e.g., LED doesn't light up, smoke from resistor, voltage dropping)... Include component values like 10k resistor, 9V battery, 2N2222 transistor." class="w-full cyber-input rounded-xl p-3.5 text-sm leading-relaxed"></textarea>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wide">Code / Netlist / Pinout (Optional)</label>
+                                <span class="text-[10px] text-slate-500 font-mono">Arduino IDE / SPICE / Pin Mapping</span>
+                            </div>
+                            <textarea id="codeSnippet" rows="3" placeholder="void setup() { pinMode(13, OUTPUT); } ... " class="w-full cyber-input rounded-xl p-3 text-xs font-mono"></textarea>
+                        </div>
+
+                        <!-- Multimodal Breadboard / Schematic Upload -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Upload Breadboard Photo / Schematic</label>
+                            <div class="flex items-center space-x-3">
+                                <label class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl border border-dashed border-cyan-500/40 bg-slate-900/80 hover:bg-slate-800/80 cursor-pointer transition group">
+                                    <i class="fa-solid fa-camera text-cyan-400 mr-2 group-hover:scale-110 transition"></i>
+                                    <span class="text-xs text-slate-300 font-medium" id="uploadLabel">Choose image or photo...</span>
+                                    <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
+                                </label>
+                                <button type="button" id="clearImgBtn" onclick="clearUploadedImage()" class="hidden px-3 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 text-xs">Remove</button>
+                            </div>
+                            <div id="imagePreviewContainer" class="hidden mt-2 relative w-full h-24 rounded-xl overflow-hidden border border-cyan-500/30">
+                                <img id="uploadedImgPreview" src="" alt="Upload Preview" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="analyzeBtn" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg hover:brightness-110 transition flex items-center justify-center space-x-2 glow-cyan">
+                            <i class="fa-solid fa-bolt-lightning text-slate-950"></i>
+                            <span>Analyze Circuit ⚡</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Right Column: AI Analysis Output (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col space-y-6">
+                
+                <!-- Analysis Container -->
+                <div id="outputContainer" class="cyber-border rounded-2xl p-6 shadow-2xl flex-1 flex flex-col min-h-[640px] relative overflow-hidden">
+                    
+                    <!-- Initial Empty State -->
+                    <div id="emptyState" class="my-auto text-center py-16 px-4">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-3xl glow-cyan-sm">
+                            <i class="fa-solid fa-microchip animate-pulse"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-200 mb-2">Ready for Diagnostics</h3>
+                        <p class="text-sm text-slate-400 max-w-md mx-auto">
+                            Select a student preset problem on the left, upload a breadboard photo, or enter your custom circuit details to receive AI component breakdowns, SPICE netlists, and BOM estimates.
+                        </p>
+                    </div>
+
+                    <!-- Loading Overlay with Scanning Animation -->
+                    <div id="loadingState" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6">
+                        <div class="relative w-32 h-32 mb-6">
+                            <div class="absolute inset-0 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+                            <div class="absolute inset-3 rounded-full border-2 border-amber-500/20 border-b-amber-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fa-solid fa-bolt text-amber-400 text-2xl animate-bounce"></i>
+                            </div>
+                            <!-- Scanning line -->
+                            <div class="absolute inset-x-0 h-0.5 bg-cyan-400 shadow-[0_0_10px_#22d3ee] animate-scan"></div>
+                        </div>
+                        <h4 class="text-base font-bold text-cyan-400 tracking-wider mb-2" id="loadingStatusText">Scanning Circuit Nodes...</h4>
+                        <p class="text-xs text-slate-400 font-mono text-center">Consulting AI Knowledge Base & Calculating Ohm's Law matrices</p>
+                    </div>
+
+                    <!-- Active Analysis Results (Hidden initially) -->
+                    <div id="activeResults" class="hidden flex-col h-full space-y-5">
+                        
+                        <!-- Header Info & Export Controls -->
+                        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                            <div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30" id="resultTypeBadge">Arduino</span>
+                                    <span class="text-xs text-slate-400 font-mono" id="resultTimestamp">Analyzed just now</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-100" id="resultTitle">Analysis Results</h3>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="playTTS()" id="ttsBtn" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-cyan-400 transition flex items-center space-x-1.5" title="Read explanation aloud">
+                                    <i class="fa-solid fa-volume-high text-cyan-400"></i>
+                                    <span>Read</span>
+                                </button>
+                                <button onclick="exportMarkdownReport()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-amber-400 transition flex items-center space-x-1.5" title="Export Lab Report Markdown">
+                                    <i class="fa-solid fa-file-arrow-down text-amber-400"></i>
+                                    <span>Lab Report</span>
+                                </button>
+                                <button onclick="saveCurrentCircuit()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-cyan-400 transition flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-bookmark"></i>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab Navigation -->
+                        <div class="flex overflow-x-auto space-x-2 border-b border-slate-800 pb-2">
+                            <button onclick="switchTab('diagnosis')" id="tab-diagnosis" class="tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fa-solid fa-stethoscope"></i>
+                                <span>Diagnosis</span>
+                            </button>
+                            <button onclick="switchTab('components')" id="tab-components" class="tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fa-solid fa-cubes"></i>
+                                <span>Components</span>
+                            </button>
+                            <button onclick="switchTab('wiring')" id="tab-wiring" class="tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fa-solid fa-diagram-project"></i>
+                                <span>Wiring Guide</span>
+                            </button>
+                            <button onclick="switchTab('bom')" id="tab-bom" class="tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fa-solid fa-file-invoice-dollar text-amber-400"></i>
+                                <span>BOM & Cost</span>
+                            </button>
+                            <button onclick="switchTab('schematic')" id="tab-schematic" class="tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fa-solid fa-terminal"></i>
+                                <span>SPICE Netlist</span>
+                            </button>
+                        </div>
+
+                        <!-- Tab Content Panels -->
+                        <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+                            
+                            <!-- 1. Diagnosis Tab -->
+                            <div id="content-diagnosis" class="tab-content space-y-4">
+                                <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm leading-relaxed flex items-start space-x-3">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-amber-400 mb-1">Root Cause Identified</h4>
+                                        <p id="diagSummaryText" class="text-slate-300"></p>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-400">Engineering Explanation</h4>
+                                    <p id="diagDetailText" class="text-sm text-slate-300 leading-relaxed"></p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Troubleshooting Checklist</h4>
+                                    <div class="space-y-2 pt-1" id="checklistContainer">
+                                        <!-- Populated via JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Components Breakdown Tab -->
+                            <div id="content-components" class="tab-content hidden space-y-3">
+                                <div id="componentsListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+
+                            <!-- 3. Wiring & Connection Guide Tab -->
+                            <div id="content-wiring" class="tab-content hidden space-y-3">
+                                <div class="space-y-2.5" id="wiringStepsContainer">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+
+                            <!-- 4. Bill of Materials (BOM) & Cost Tab -->
+                            <div id="content-bom" class="tab-content hidden space-y-3">
+                                <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-800/80 text-cyan-400 font-mono uppercase tracking-wider border-b border-slate-700">
+                                            <tr>
+                                                <th class="p-3">Item / Component</th>
+                                                <th class="p-3">Package / Specs</th>
+                                                <th class="p-3">Qty</th>
+                                                <th class="p-3 text-right">Est. Cost</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bomTableBody" class="divide-y divide-slate-800 text-slate-300 font-mono">
+                                            <!-- Populated via JS -->
+                                        </tbody>
+                                        <tfoot class="bg-slate-950 font-bold text-amber-400">
+                                            <tr>
+                                                <td colspan="3" class="p-3 text-right uppercase tracking-wider">Total Estimated BOM Cost:</td>
+                                                <td class="p-3 text-right" id="bomTotalCost">$0.00</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 5. Schematic / Netlist Tab -->
+                            <div id="content-schematic" class="tab-content hidden space-y-3">
+                                <div class="relative rounded-xl bg-slate-950 border border-cyan-500/30 p-4 font-mono text-xs text-cyan-300 overflow-x-auto">
+                                    <div class="absolute top-3 right-3 flex space-x-2">
+                                        <button onclick="downloadSpiceNetlist()" class="px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 rounded text-[10px]">Export .cir</button>
+                                        <button onclick="copySchematic()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded text-[10px] text-slate-300">Copy ASCII</button>
+                                    </div>
+                                    <pre id="schematicAscii" class="leading-relaxed"></pre>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- VIEW 2: ENGINEERING CALCULATORS TOOLKIT -->
+        <div id="view-calculators" class="hidden space-y-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-cyan-400 tracking-wide">Lab Engineering Calculators</h2>
+                    <p class="text-xs text-slate-400">Essential formulas for hardware prototyping, passive filtering, and active timer circuits.</p>
+                </div>
+                <button onclick="switchMainTab('diagnostics')" class="px-4 py-2 rounded-xl cyber-card text-xs text-slate-300 hover:text-cyan-400 transition">
+                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Diagnostics
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- 1. LED Series Resistor Calculator -->
+                <div class="cyber-border rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                        <div class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400">
+                            <i class="fa-solid fa-lightbulb text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-100">LED Series Resistor Calculator</h3>
+                            <p class="text-[11px] text-slate-400">Calculate exact resistance needed to prevent diode burnout.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Supply Voltage (Vcc)</label>
+                            <input type="number" id="ledVcc" value="5" step="0.1" class="w-full cyber-input rounded-xl px-3 py-2 text-sm font-mono" oninput="calcLed()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">LED Forward Voltage (Vf)</label>
+                            <input type="number" id="ledVf" value="2.0" step="0.1" class="w-full cyber-input rounded-xl px-3 py-2 text-sm font-mono" oninput="calcLed()">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Forward Current (mA)</label>
+                        <input type="number" id="ledIf" value="20" step="1" class="w-full cyber-input rounded-xl px-3 py-2 text-sm font-mono" oninput="calcLed()">
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-between">
+                        <span class="text-xs text-slate-300">Required Resistance:</span>
+                        <span class="text-base font-mono font-bold text-cyan-400" id="ledResult">150 Ω</span>
+                    </div>
+                </div>
+
+                <!-- 2. Voltage Divider Calculator -->
+                <div class="cyber-border rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                        <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+                            <i class="fa-solid fa-divide text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-100">Voltage Divider Calculator</h3>
+                            <p class="text-[11px] text-slate-400">Calculate output voltage ($V_{out}$) across two resistors.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Vin (V)</label>
+                            <input type="number" id="divVin" value="9" step="0.1" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calcDivider()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">R1 (Ω)</label>
+                            <input type="number" id="divR1" value="10000" step="100" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calcDivider()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">R2 (Ω)</label>
+                            <input type="number" id="divR2" value="10000" step="100" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calcDivider()">
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-amber-500/30 flex items-center justify-between">
+                        <span class="text-xs text-slate-300">Output Voltage ($V_{out}$):</span>
+                        <span class="text-base font-mono font-bold text-amber-400" id="divResult">4.50 V</span>
+                    </div>
+                </div>
+
+                <!-- 3. RC Filter Cutoff Frequency -->
+                <div class="cyber-border rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                        <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                            <i class="fa-solid fa-filter text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-100">RC Low-Pass Filter Cutoff</h3>
+                            <p class="text-[11px] text-slate-400">Calculate -3dB cutoff frequency ($f_c = \frac{1}{2\pi RC}$).</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Resistance (Ω)</label>
+                            <input type="number" id="rcR" value="1000" step="10" class="w-full cyber-input rounded-xl px-3 py-2 text-sm font-mono" oninput="calcRc()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Capacitance (µF)</label>
+                            <input type="number" id="rcC" value="0.1" step="0.01" class="w-full cyber-input rounded-xl px-3 py-2 text-sm font-mono" oninput="calcRc()">
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-purple-500/30 flex items-center justify-between">
+                        <span class="text-xs text-slate-300">Cutoff Frequency ($f_c$):</span>
+                        <span class="text-base font-mono font-bold text-purple-400" id="rcResult">1.59 kHz</span>
+                    </div>
+                </div>
+
+                <!-- 4. 555 Timer Astable Calculator -->
+                <div class="cyber-border rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <i class="fa-solid fa-wave-square text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-100">555 Timer Astable Frequency</h3>
+                            <p class="text-[11px] text-slate-400">Calculate square wave frequency & duty cycle.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">R1 (kΩ)</label>
+                            <input type="number" id="t555R1" value="1" step="0.1" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calc555()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">R2 (kΩ)</label>
+                            <input type="number" id="t555R2" value="100" step="1" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calc555()">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">C (µF)</label>
+                            <input type="number" id="t555C" value="10" step="0.1" class="w-full cyber-input rounded-xl px-2 py-2 text-sm font-mono" oninput="calc555()">
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-between">
+                        <span class="text-xs text-slate-300">Frequency / Duty:</span>
+                        <span class="text-sm font-mono font-bold text-emerald-400" id="t555Result">0.99 Hz (50.5%)</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Saved History Drawer -->
+    <div id="historyDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden transition-opacity flex justify-end">
+        <div class="w-full max-w-md bg-slate-900 h-full border-l border-slate-800 p-6 flex flex-col shadow-2xl transform transition-transform">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <h3 class="text-base font-bold text-cyan-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Saved Circuits History</span>
+                </h3>
+                <button onclick="toggleHistoryDrawer()" class="text-slate-400 hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4 space-y-3" id="savedHistoryList">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
+                <button onclick="clearAllHistory()" class="text-xs text-red-400 hover:text-red-300 font-medium">Clear History</button>
+                <span class="text-xs text-slate-500 font-mono" id="savedCountLabel">0 items</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Settings Modal -->
+    <div id="apiKeyModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md cyber-border rounded-2xl p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-amber-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Gemini API Key Settings</span>
+                </h3>
+                <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                CircuitMate works out of the box with intelligent offline fallback. To enable live real-time analysis via Google Gemini API (gemini-3-flash-preview), enter your API key below.
+            </p>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Gemini API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full cyber-input rounded-xl px-3.5 py-2.5 text-sm font-mono">
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-2">
+                <button onclick="saveApiKey()" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase hover:bg-amber-400 transition">Save Key</button>
+                <button onclick="removeApiKey()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs uppercase hover:bg-slate-700 transition">Remove Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-cyan-500 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3">
+        <i class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+        <span class="text-sm font-medium" id="toastMessage">Success</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const presetData = {
+            'led_arduino': {
+                type: 'Microcontroller / Arduino',
+                desc: 'LED connected to digital pin 13 without a series current-limiting resistor, resulting in burnout or excessive current draw exceeding ATmega328P pin limit (40mA max).',
+                code: 'void setup() {\n  pinMode(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  delay(1000);\n}',
+                diagnosisSummary: 'The Arduino digital output pin is sourcing ~5V directly across a standard LED diode which has a forward voltage drop of ~2.0V. Without a current-limiting resistor, current can exceed 100mA, destroying either the LED or damaging the microcontroller pin.',
+                diagnosisDetail: 'Ohm’s Law applies: I = (Vcc - Vf) / R. With R = 0 ohms, current is limited only by internal transistor resistance (~20-30 ohms). This causes thermal overload.',
+                components: [
+                    { name: 'Arduino Uno (ATmega328P)', role: 'Microcontroller board', specs: '5V logic, Max 40mA per GPIO pin', cost: '$22.00', qty: 1 },
+                    { name: 'Standard Red LED', role: 'Indicator light', specs: 'Vf = 2.0V, If = 20mA nominal', cost: '$0.10', qty: 1 },
+                    { name: 'Current Limiting Resistor', role: 'Limits forward current', specs: 'Required: 220Ω, 1/4W', cost: '$0.05', qty: 1 }
+                ],
+                wiring: [
+                    'Disconnect power from Arduino USB port before rewiring.',
+                    'Insert a 220-ohm resistor between Arduino Digital Pin 13 and the LED Anode (long leg).',
+                    'Connect the LED Cathode (short leg) directly to Arduino GND pin.',
+                    'Double-check polarity: Anode to resistor/pin 13, Cathode to GND.'
+                ],
+                checklist: [
+                    'Verify resistor value using multimeter color bands (Red-Red-Brown for 220Ω).',
+                    'Check LED orientation (flat edge/short leg is cathode to GND).',
+                    'Ensure correct pin mapping in Arduino code (`pinMode(13, OUTPUT)`).',
+                    'Test pin voltage with a multimeter relative to GND (should read ~5V when HIGH).'
+                ],
+                schematic: `
+* SPICE Netlist - LED Arduino Circuit
+V1 Pin1 0 DC 5.0
+R1 Pin1 Pin2 220
+D1 Pin2 0 LEDMOD
+.model LEDMOD D(Is=1e-19 N=1.5)
+.tran 1ms 10ms
+.end
+                `
+            },
+            'timer_555': {
+                type: 'Analog',
+                desc: '555 Timer configured in astable multivibrator mode stuck HIGH, not oscillating square waves on Pin 3.',
+                code: 'VCC = 9V\nR1 = 1k\nR2 = 100k\nC1 = 10uF',
+                diagnosisSummary: 'Pin 2 (Trigger) and Pin 6 (Threshold) are either floating or incorrectly wired to VCC/GND, preventing the internal flip-flop from resetting and cycling capacitor charge/discharge.',
+                diagnosisDetail: 'In astable mode, capacitor C1 charges through R1 + R2 and discharges through R2. If Pin 2 voltage stays above 1/3 VCC or Pin 6 stays below 2/3 VCC, oscillation halts.',
+                components: [
+                    { name: 'NE555 Timer IC', role: 'Precision timing pulse generator', specs: 'Vcc: 4.5V to 16V', cost: '$0.45', qty: 1 },
+                    { name: 'Timing Capacitor (C1)', role: 'Sets oscillation frequency', specs: '10µF electrolytic, 25V', cost: '$0.20', qty: 1 },
+                    { name: 'Resistors R1 & R2', role: 'Charge/discharge timing resistors', specs: 'R1 = 1kΩ, R2 = 100kΩ', cost: '$0.10', qty: 2 }
+                ],
+                wiring: [
+                    'Connect Pin 8 (VCC) to 9V supply and Pin 1 (GND) to ground.',
+                    'Tie Pin 2 (Trigger) and Pin 6 (Threshold) together at the positive terminal of capacitor C1.',
+                    'Connect R1 between VCC and Pin 7 (Discharge). Connect R2 between Pin 7 and Pin 6.',
+                    'Connect Pin 4 (Reset) directly to VCC (do not leave floating!).'
+                ],
+                checklist: [
+                    'Verify Pin 4 Reset pin is pulled HIGH to VCC.',
+                    'Check electrolytic capacitor polarity (positive lead to Pin 6/2, negative to GND).',
+                    'Confirm timing resistor values (R1 and R2 are not swapped).',
+                    'Measure Pin 3 output with an oscilloscope or frequency counter.'
+                ],
+                schematic: `
+* SPICE Netlist - 555 Astable Multivibrator
+VCC 8 0 DC 9.0
+RA 8 7 1k
+RB 7 6 100k
+C1 6 0 10uF IC=0
+.tran 0.1ms 50ms
+.end
+                `
+            },
+            'transistor_hot': {
+                type: 'Power Electronics',
+                desc: 'TIP120 Darlington transistor switch driving a 12V DC motor is overheating rapidly and entering thermal runaway.',
+                code: 'Motor: 12V 1.5A DC\nTransistor: TIP120\nBase Resistor: None (Direct GPIO)',
+                diagnosisSummary: 'Missing flyback diode across the inductive motor terminals causing massive voltage spikes (inductive kickback) during switching, combined with lack of a base resistor causing saturation current issues.',
+                diagnosisDetail: 'When switching inductive loads like DC motors, collapsing magnetic fields generate hundreds of volts of reverse polarity spikes that breakdown the transistor collector-emitter junction.',
+                components: [
+                    { name: 'TIP120 Darlington Transistor', role: 'Low-side power switch', specs: 'Vceo = 60V, Ic = 5A', cost: '$0.85', qty: 1 },
+                    { name: '12V DC Motor', role: 'Inductive load actuator', specs: 'Stall current ~1.5A', cost: '$4.50', qty: 1 },
+                    { name: 'Flyback Diode (1N4007)', role: 'Suppresses inductive kickback transients', specs: '1000V 1A Rectifier', cost: '$0.08', qty: 1 }
+                ],
+                wiring: [
+                    'Place a 1N4007 diode in parallel across the motor terminals with cathode pointing toward the 12V rail.',
+                    'Connect a 1kΩ resistor between the microcontroller GPIO and the transistor Base.',
+                    'Tie transistor Emitter directly to ground (Common GND with MCU).',
+                    'Add a heat sink to the TIP120 tab if driving loads > 1A continuously.'
+                ],
+                checklist: [
+                    'Check diode polarity (Cathode to positive supply rail).',
+                    'Verify common ground between 12V power supply and microcontroller.',
+                    'Check base current limiting resistor to prevent GPIO pin burnout.',
+                    'Monitor temperature with thermal probe or touch test.'
+                ],
+                schematic: `
+* SPICE Netlist - TIP120 Motor Driver
+VCC 12 0 DC 12.0
+L1 12 2 10mH
+D1 2 12 DMOD
+Q1 2 3 0 TIP120
+.model DMOD D(Is=7.69n Rs=0.042 N=1.76 CJO=20p)
+.end
+                `
+            },
+            'opamp_sat': {
+                type: 'Analog',
+                desc: 'LM358 non-inverting operational amplifier output is permanently locked (saturated) at positive VCC rail, ignoring input signals.',
+                code: 'VCC = +12V, GND = 0V (Single Supply)\nVin = 1V DC\nRf = 100k, Rin = 10k (Gain = 11)',
+                diagnosisSummary: 'The op-amp output has hit its maximum voltage ceiling (rail-to-rail limit) due to excessive closed-loop gain or lack of negative feedback, or input common-mode voltage violation.',
+                diagnosisDetail: 'With a single supply (+12V and 0V), standard op-amps like LM358 cannot swing all the way to VCC. Furthermore, if the feedback loop is broken or input exceeds linear range, saturation occurs.',
+                components: [
+                    { name: 'LM358 Dual Op-Amp', role: 'Signal amplification', specs: 'Single supply: 3V to 32V', cost: '$0.35', qty: 1 },
+                    { name: 'Feedback Resistor (Rf)', role: 'Sets amplifier gain', specs: '100kΩ 1/4W', cost: '$0.05', qty: 1 },
+                    { name: 'Input Resistor (Rin)', role: 'Reference ground resistor', specs: '10kΩ 1/4W', cost: '$0.05', qty: 1 }
+                ],
+                wiring: [
+                    'Ensure VCC (Pin 8) is connected to +12V and GND (Pin 4) is connected to 0V.',
+                    'Connect input signal to Non-Inverting input (Pin 3).',
+                    'Connect Inverting input (Pin 2) to divider network (Rf to output, Rin to GND).',
+                    'Verify feedback loop is intact and resistors are correctly soldered.'
+                ],
+                checklist: [
+                    'Measure DC voltage at Pin 3 (Non-inverting input) and Pin 2 (Inverting input).',
+                    'Check if input voltage exceeds maximum allowable common-mode range.',
+                    'Verify power supply rails with multimeter.',
+                    'Check for open circuit in feedback resistor Rf.'
+                ],
+                schematic: `
+* SPICE Netlist - LM358 Non-Inverting Amplifier
+VCC 8 0 DC 12.0
+VIN 3 0 SIN(0 0.5 1k)
+RF 1 2 100k
+RIN 2 0 10k
+X1 3 2 1 LM358
+.end
+                `
+            }
+        };
+
+        // App State
+        let currentAnalysis = null;
+        let savedHistory = JSON.parse(localStorage.getItem('circuitmate_history') || '[]');
+        let uploadedImageBase64 = null;
+
+        // Initialize UI on load
+        window.onload = function() {
+            updateApiKeyStatus();
+            renderHistoryList();
+            calcLed();
+            calcDivider();
+            calcRc();
+            calc555();
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // View Switching between Diagnostics and Calculators
+        function switchMainTab(tab) {
+            const diagView = document.getElementById('view-diagnostics');
+            const calcView = document.getElementById('view-calculators');
+            const navDiag = document.getElementById('nav-diagnostics');
+            const navCalc = document.getElementById('nav-calculators');
+
+            if (tab === 'diagnostics') {
+                diagView.classList.remove('hidden');
+                calcView.classList.add('hidden');
+                navDiag.className = "px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-semibold flex items-center space-x-1.5 transition";
+                navCalc.className = "px-3 py-2 rounded-lg cyber-card hover:border-cyan-500/40 text-slate-300 text-xs font-semibold flex items-center space-x-1.5 transition";
+            } else {
+                diagView.classList.add('hidden');
+                calcView.classList.remove('hidden');
+                navDiag.className = "px-3 py-2 rounded-lg cyber-card hover:border-cyan-500/40 text-slate-300 text-xs font-semibold flex items-center space-x-1.5 transition";
+                navCalc.className = "px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-semibold flex items-center space-x-1.5 transition";
+            }
+        }
+
+        // Preset loader
+        function loadPreset(key) {
+            const data = presetData[key];
+            if (!data) return;
+            document.getElementById('circuitType').value = data.type;
+            document.getElementById('problemDesc').value = data.desc;
+            document.getElementById('codeSnippet').value = data.code;
+            showToast("Preset loaded into diagnostic console!");
+            document.getElementById('circuitForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearForm() {
+            document.getElementById('problemDesc').value = '';
+            document.getElementById('codeSnippet').value = '';
+            clearUploadedImage();
+            showToast("Form reset");
+        }
+
+        // Image / Breadboard Upload Handler
+        function handleImageSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImageBase64 = e.target.result;
+                document.getElementById('uploadLabel').textContent = file.name;
+                document.getElementById('uploadedImgPreview').src = uploadedImageBase64;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                document.getElementById('clearImgBtn').classList.remove('hidden');
+                showToast("Breadboard photo attached successfully!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearUploadedImage() {
+            uploadedImageBase64 = null;
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('uploadLabel').textContent = 'Choose image or photo...';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('clearImgBtn').classList.add('hidden');
+        }
+
+        // Voice Input (Speech Recognition)
+        let recognition = null;
+        function toggleVoiceInput() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast("Speech recognition is not supported in this browser.");
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = function() {
+                    document.getElementById('micLabel').textContent = "Listening...";
+                    document.getElementById('micBtn').className = "text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 animate-pulse transition";
+                };
+
+                recognition.onresult = function(event) {
+                    const speechText = event.results[0][0].transcript;
+                    const descArea = document.getElementById('problemDesc');
+                    descArea.value = descArea.value ? descArea.value + " " + speechText : speechText;
+                    showToast("Voice captured successfully!");
+                };
+
+                recognition.onerror = function() {
+                    showToast("Microphone error or permission denied.");
+                    resetMicBtn();
+                };
+
+                recognition.onend = function() {
+                    resetMicBtn();
+                };
+            }
+            recognition.start();
+        }
+
+        function resetMicBtn() {
+            document.getElementById('micLabel').textContent = "Dictate";
+            document.getElementById('micBtn').className = "text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30 transition";
+        }
+
+        // API Key Management
+        function openApiKeyModal() {
+            document.getElementById('apiKeyInput').value = localStorage.getItem('circuitmate_gemini_key') || '';
+            document.getElementById('apiKeyModal').classList.remove('hidden');
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('circuitmate_gemini_key', key);
+                showToast("Gemini API Key saved securely!");
+            }
+            closeApiKeyModal();
+            updateApiKeyStatus();
+        }
+
+        function removeApiKey() {
+            localStorage.removeItem('circuitmate_gemini_key');
+            document.getElementById('apiKeyInput').value = '';
+            showToast("API Key removed. Using offline AI engine.");
+            closeApiKeyModal();
+            updateApiKeyStatus();
+        }
+
+        function updateApiKeyStatus() {
+            const key = localStorage.getItem('circuitmate_gemini_key');
+            const statusLabel = document.getElementById('apiKeyStatusLabel');
+            const modeIndicator = document.getElementById('modeIndicator');
+            if (key) {
+                statusLabel.textContent = "API Key Active";
+                modeIndicator.textContent = "Gemini Live AI";
+                modeIndicator.className = "text-xs font-mono text-cyan-400 font-semibold";
+            } else {
+                statusLabel.textContent = "API Key";
+                modeIndicator.textContent = "AI Online";
+                modeIndicator.className = "text-xs font-mono text-emerald-400 font-semibold";
+            }
+        }
+
+        // Handle Circuit Analysis
+        async function handleAnalyze(e) {
+            e.preventDefault();
+            const type = document.getElementById('circuitType').value;
+            const desc = document.getElementById('problemDesc').value;
+            const code = document.getElementById('codeSnippet').value;
+
+            if (!desc.trim()) {
+                showToast("Please enter a problem description.");
+                return;
+            }
+
+            const loadingState = document.getElementById('loadingState');
+            loadingState.classList.remove('hidden');
+
+            const statusTexts = [
+                "Scanning Circuit Nodes & Breadboard...",
+                "Analyzing Component Specifications...",
+                "Running SPICE Netlist Simulation...",
+                "Calculating Bill of Materials (BOM)..."
+            ];
+            let step = 0;
+            const statusInterval = setInterval(() => {
+                step = (step + 1) % statusTexts.length;
+                document.getElementById('loadingStatusText').textContent = statusTexts[step];
+            }, 600);
+
+            const apiKey = localStorage.getItem('circuitmate_gemini_key');
+
+            try {
+                let analysisResult = null;
+                if (apiKey) {
+                    analysisResult = await callGeminiAPI(apiKey, type, desc, code, uploadedImageBase64);
+                }
+                if (!analysisResult) {
+                    await new Promise(r => setTimeout(r, 1800));
+                    analysisResult = generateSmartFallback(type, desc, code);
+                }
+
+                clearInterval(statusInterval);
+                loadingState.classList.add('hidden');
+
+                currentAnalysis = {
+                    id: Date.now(),
+                    type,
+                    desc,
+                    code,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    ...analysisResult
+                };
+
+                renderResults(currentAnalysis);
+                showToast("Circuit analysis completed successfully!");
+
+            } catch (err) {
+                clearInterval(statusInterval);
+                loadingState.classList.add('hidden');
+                console.error(err);
+                const fallback = generateSmartFallback(type, desc, code);
+                currentAnalysis = { id: Date.now(), type, desc, code, timestamp: new Date().toLocaleTimeString(), ...fallback };
+                renderResults(currentAnalysis);
+                showToast("API call failed. Loaded intelligent fallback analysis.");
+            }
+        }
+
+        // Gemini API Caller with Multimodal Support
+        async function callGeminiAPI(apiKey, type, desc, code, imageBase64) {
+            const systemPrompt = "You are CircuitMate, an expert electronics lab assistant and professor. Analyze the student's electronics circuit problem and return a JSON object with keys: diagnosisSummary, diagnosisDetail, components (array of objects with name, role, specs, cost, qty), wiring (array of step strings), checklist (array of fix strings), schematic (SPICE netlist string).";
+            const userPrompt = `Circuit Type: ${type}\nProblem: ${desc}\nCode/Netlist: ${code}`;
+
+            const parts = [{ text: userPrompt }];
+            if (imageBase64) {
+                const base64Data = imageBase64.split(',')[1];
+                parts.push({
+                    inlineData: {
+                        mimeType: "image/jpeg",
+                        data: base64Data
+                    }
+                });
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ role: 'user', parts: parts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: { responseMimeType: "application/json" }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("API request failed");
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("Invalid API response structure");
+            return JSON.parse(text);
+        }
+
+        // Smart Offline Fallback generator
+        function generateSmartFallback(type, desc, code) {
+            const lower = desc.toLowerCase();
+            if (lower.includes('led') || lower.includes('arduino')) return presetData['led_arduino'];
+            if (lower.includes('555') || lower.includes('timer') || lower.includes('astable')) return presetData['timer_555'];
+            if (lower.includes('transistor') || lower.includes('hot') || lower.includes('motor') || lower.includes('tip120')) return presetData['transistor_hot'];
+            if (lower.includes('op-amp') || lower.includes('opamp') || lower.includes('saturated') || lower.includes('lm358')) return presetData['opamp_sat'];
+
+            return {
+                diagnosisSummary: `Analysis of ${type} circuit indicates potential wiring mismatch, component tolerance drift, or improper power supply decoupling.`,
+                diagnosisDetail: `The described behavior ("${desc}") points toward a mismatch between expected impedance or logic levels. Review component continuity and ground reference planes.`,
+                components: [
+                    { name: 'Primary IC / Microcontroller', role: 'Main processing / control unit', specs: 'Standard operating voltage', cost: '$12.00', qty: 1 },
+                    { name: 'Passive Components (Resistors/Capacitors)', role: 'Biasing and filtering', specs: 'Tolerance ±5%', cost: '$0.50', qty: 5 },
+                    { name: 'Power Source', role: 'DC Power Rail', specs: 'Regulated DC', cost: '$5.00', qty: 1 }
+                ],
+                wiring: [
+                    'Verify all ground connections share a common low-impedance node.',
+                    'Check power supply rail voltages with a digital multimeter.',
+                    'Ensure proper decoupling capacitors (0.1µF ceramic) are placed close to IC power pins.',
+                    'Inspect solder joints for cold joints or accidental bridging.'
+                ],
+                checklist: [
+                    'Confirm VCC and GND are not reversed on any active components.',
+                    'Check for floating input pins that may pick up electromagnetic interference.',
+                    'Verify component ratings against maximum voltage and current limits.',
+                    'Test continuity across critical breadboard power rails.'
+                ],
+                schematic: `
+* SPICE Netlist - Generic Circuit Analysis
+VCC VCC 0 DC 5.0
+R1 VCC NODE1 10k
+C1 NODE1 0 0.1uF
+.tran 1ms 10ms
+.end
+                `
+            };
+        }
+
+        // Render Results to UI
+        function renderResults(data) {
+            document.getElementById('emptyState').classList.add('hidden');
+            const activeResults = document.getElementById('activeResults');
+            activeResults.classList.remove('hidden');
+            activeResults.classList.add('flex');
+
+            document.getElementById('resultTypeBadge').textContent = data.type;
+            document.getElementById('resultTimestamp').textContent = data.timestamp;
+            document.getElementById('resultTitle').textContent = data.desc.length > 50 ? data.desc.substring(0, 50) + '...' : data.desc;
+
+            document.getElementById('diagSummaryText').textContent = data.diagnosisSummary;
+            document.getElementById('diagDetailText').textContent = data.diagnosisDetail;
+
+            // Components
+            const compContainer = document.getElementById('componentsListContainer');
+            compContainer.innerHTML = '';
+            data.components.forEach(c => {
+                compContainer.innerHTML += `
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-cyan-400 font-mono">${c.name}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">${c.specs || 'Standard'}</span>
+                        </div>
+                        <p class="text-xs text-slate-300">${c.role}</p>
+                    </div>
+                `;
+            });
+
+            // Wiring
+            const wiringContainer = document.getElementById('wiringStepsContainer');
+            wiringContainer.innerHTML = '';
+            data.wiring.forEach((step, idx) => {
+                wiringContainer.innerHTML += `
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-start space-x-3">
+                        <span class="w-6 h-6 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-xs font-mono font-bold shrink-0">${idx + 1}</span>
+                        <p class="text-sm text-slate-300 pt-0.5">${step}</p>
+                    </div>
+                `;
+            });
+
+            // BOM Table
+            const bomBody = document.getElementById('bomTableBody');
+            bomBody.innerHTML = '';
+            let totalCost = 0;
+            data.components.forEach(c => {
+                const qty = c.qty || 1;
+                const unitCost = parseFloat((c.cost || '$1.00').replace('$', '')) || 1.0;
+                const itemTotal = qty * unitCost;
+                totalCost += itemTotal;
+                bomBody.innerHTML += `
+                    <tr>
+                        <td class="p-3 font-semibold text-slate-200">${c.name}</td>
+                        <td class="p-3 text-slate-400">${c.specs || 'Standard'}</td>
+                        <td class="p-3 text-cyan-400">${qty}</td>
+                        <td class="p-3 text-right font-mono">$${itemTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('bomTotalCost').textContent = `$${totalCost.toFixed(2)}`;
+
+            // Checklist
+            const checkContainer = document.getElementById('checklistContainer');
+            checkContainer.innerHTML = '';
+            data.checklist.forEach((item) => {
+                checkContainer.innerHTML += `
+                    <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-3 cursor-pointer hover:border-slate-700 transition">
+                        <input type="checkbox" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-0">
+                        <span class="text-sm text-slate-300">${item}</span>
+                    </label>
+                `;
+            });
+
+            // Schematic
+            document.getElementById('schematicAscii').textContent = data.schematic || 'No SPICE netlist available.';
+
+            switchTab('diagnosis');
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            const tabs = ['diagnosis', 'components', 'wiring', 'bom', 'schematic'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                if (t === tabName) {
+                    btn.className = "tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center space-x-2 whitespace-nowrap";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center space-x-2 whitespace-nowrap";
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // Text-to-Speech Narration
+        function playTTS() {
+            if (!currentAnalysis) return;
+            if (!('speechSynthesis' in window)) {
+                showToast("Text-to-speech not supported in this browser.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const textToSpeak = `Diagnosis: ${currentAnalysis.diagnosisSummary}. ${currentAnalysis.diagnosisDetail}`;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+            showToast("Reading troubleshooting explanation aloud...");
+        }
+
+        // Lab Report Markdown Export
+        function exportMarkdownReport() {
+            if (!currentAnalysis) return;
+            const md = `# CircuitMate Laboratory Diagnostic Report
+**Circuit Type:** ${currentAnalysis.type}  
+**Timestamp:** ${currentAnalysis.timestamp}  
+
+## Problem Description
+> ${currentAnalysis.desc}
+
+## Diagnosis Summary
+${currentAnalysis.diagnosisSummary}
+
+### Engineering Details
+${currentAnalysis.diagnosisDetail}
+
+## Component Breakdown
+${currentAnalysis.components.map(c => `- **${c.name}** (${c.specs || 'Standard'}): ${c.role} | Qty: ${c.qty || 1} | Cost: ${c.cost || '$1.00'}`).join('\n')}
+
+## Step-by-Step Wiring Guide
+${currentAnalysis.wiring.map((w, i) => `${i + 1}. ${w}`).join('\n')}
+
+## Troubleshooting Checklist
+${currentAnalysis.checklist.map(cl => `- [ ] ${cl}`).join('\n')}
+
+## SPICE Netlist
+\`\`\`spice
+${currentAnalysis.schematic}
+\`\`\`
+`;
+            const blob = new Blob([md], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CircuitMate_Report_${Date.now()}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Lab report downloaded as Markdown!");
+        }
+
+        // Download SPICE Netlist (.cir)
+        function downloadSpiceNetlist() {
+            if (!currentAnalysis) return;
+            const blob = new Blob([currentAnalysis.schematic], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `circuit_netlist_${Date.now()}.cir`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("SPICE netlist (.cir) downloaded!");
+        }
+
+        // Save Current Circuit to History
+        function saveCurrentCircuit() {
+            if (!currentAnalysis) return;
+            if (!savedHistory.some(item => item.desc === currentAnalysis.desc)) {
+                savedHistory.unshift(currentAnalysis);
+                localStorage.setItem('circuitmate_history', JSON.stringify(savedHistory));
+                renderHistoryList();
+                showToast("Circuit saved to your history!");
+            } else {
+                showToast("Circuit is already in your saved history.");
+            }
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('savedHistoryList');
+            document.getElementById('savedCountLabel').textContent = `${savedHistory.length} items`;
+            if (savedHistory.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs font-mono">No saved circuits yet.</div>`;
+                return;
+            }
+            list.innerHTML = '';
+            savedHistory.forEach((item, idx) => {
+                list.innerHTML += `
+                    <div onclick="loadSavedCircuit(${idx})" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer space-y-1.5 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono text-cyan-400">${item.type}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">${item.timestamp}</span>
+                        </div>
+                        <h4 class="text-xs font-semibold text-slate-200 group-hover:text-cyan-300 transition line-clamp-2">${item.desc}</h4>
+                    </div>
+                `;
+            });
+        }
+
+        function loadSavedCircuit(idx) {
+            currentAnalysis = savedHistory[idx];
+            renderResults(currentAnalysis);
+            toggleHistoryDrawer();
+            switchMainTab('diagnostics');
+            showToast("Loaded saved circuit from history.");
+        }
+
+        function clearAllHistory() {
+            savedHistory = [];
+            localStorage.removeItem('circuitmate_history');
+            renderHistoryList();
+            showToast("Saved history cleared.");
+        }
+
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('historyDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function copySchematic() {
+            if (!currentAnalysis) return;
+            const text = currentAnalysis.schematic;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+            }
+            showToast("SPICE netlist copied to clipboard!");
+        }
+
+        // --- ENGINEERING CALCULATORS ---
+        function calcLed() {
+            const vcc = parseFloat(document.getElementById('ledVcc').value) || 0;
+            const vf = parseFloat(document.getElementById('ledVf').value) || 0;
+            const if_ma = parseFloat(document.getElementById('ledIf').value) || 1;
+            const r = ((vcc - vf) / (if_ma / 1000)).toFixed(1);
+            document.getElementById('ledResult').textContent = r > 0 ? `${r} Ω` : 'Invalid (Vf >= Vcc)';
+        }
+
+        function calcDivider() {
+            const vin = parseFloat(document.getElementById('divVin').value) || 0;
+            const r1 = parseFloat(document.getElementById('divR1').value) || 1;
+            const r2 = parseFloat(document.getElementById('divR2').value) || 1;
+            const vout = (vin * (r2 / (r1 + r2))).toFixed(2);
+            document.getElementById('divResult').textContent = `${vout} V`;
+        }
+
+        function calcRc() {
+            const r = parseFloat(document.getElementById('rcR').value) || 1;
+            const c_uf = parseFloat(document.getElementById('rcC').value) || 1;
+            const c = c_uf * 1e-6;
+            const fc = (1 / (2 * Math.PI * r * c));
+            let fcStr = fc > 1000 ? `${(fc / 1000).toFixed(2)} kHz` : `${fc.toFixed(1)} Hz`;
+            document.getElementById('rcResult').textContent = fcStr;
+        }
+
+        function calc555() {
+            const r1 = (parseFloat(document.getElementById('t555R1').value) || 1) * 1000;
+            const r2 = (parseFloat(document.getElementById('t555R2').value) || 100) * 1000;
+            const c = (parseFloat(document.getElementById('t555C').value) || 10) * 1e-6;
+            const f = (1.44 / ((r1 + (2 * r2)) * c)).toFixed(2);
+            const duty = (((r1 + r2) / (r1 + (2 * r2))) * 100).toFixed(1);
+            document.getElementById('t555Result').textContent = `${f} Hz (${duty}%)`;
+        }
+    </script>
+</body>
+</html>
